@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 
-const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
-
+const MapView = dynamic(() => import('../components/MapView'), { ssr: false });
 import type { Place } from '@/lib/overpass';
 import { searchPlaces } from '@/lib/overpass';
 
@@ -195,10 +194,12 @@ export default function HomeClient() {
         {/* Map */}
         <div className="md:col-span-2">
           <MapView
-            center={center}
-            markers={places.map(p => ({ id: p.id, name: p.name, lat: p.lat, lon: p.lon, tags: p.tags }))}
-            zoom={13}
-          />
+  className="rounded-3xl border shadow-sm"
+  center={{ lat: 48.8566, lon: 2.3522 }}
+  markers={[]}
+  zoom={12}
+/>
+
         </div>
       </div>
     </div>
