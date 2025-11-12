@@ -5,6 +5,7 @@ export const TAGS_MAP: Record<string, [string,string][]> = {
   sante: [['amenity','hospital'], ['amenity','clinic'], ['amenity','pharmacy']],
   etudes: [['amenity','school'], ['amenity','college'], ['amenity','university']],
   loisirs: [['amenity','community_centre'], ['leisure','park'], ['amenity','arts_centre']],
+  nature: [['leisure','park'],['leisure','garden'], ['natural','woods']],
 };
 
 export function buildOverpassAround(lat:number, lon:number, radiusKm:number, topics:string[]) {

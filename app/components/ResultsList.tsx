@@ -14,6 +14,9 @@ export default function ResultsList({ features = [], center = [48.006, 0.199], d
         <div key={i} style={{ background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:10, padding:10, margin:'8px 0' }}>
           <div style={{ display:'flex', justifyContent:'space-between' }}>
             <b>{it.name}</b>
+            <br />
+            <div {it.amenity}{it.shop}{it.sport}/>
+          
             <span style={{ color:'#6b7280' }}>{it.dist ? it.dist.toFixed(2)+' km' : ''}</span>
           </div>
           <div style={{ color:'#6b7280', fontSize:12 }}>{it.props?.['addr:street'] || ''} {it.props?.['addr:housenumber'] || ''}</div>
