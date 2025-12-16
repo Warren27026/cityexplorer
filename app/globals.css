@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Palette Electric Glass (Mode Sombre par défaut) --- */
+  --primary: #7C3AED;       /* Violet Électrique */
+  --primary-glow: rgba(124, 58, 237, 0.5);
+  --accent: #06B6D4;        /* Cyan Néon */
+  --accent-glow: rgba(6, 182, 212, 0.5);
+  --bg-dark: #0F172A;       /* Bleu Nuit */
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  
+  /* --- Effets de Verre --- */
+  --glass-bg: rgba(30, 41, 59, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --- Mode Clair --- */
+.light {
+  --bg-dark: #F8FAFC;       /* Blanc cassé */
+  --text-main: #1E293B;     /* Bleu gris très foncé */
+  --text-muted: #64748B;
+  --glass-bg: rgba(255, 255, 255, 0.7); /* Verre blanc */
+  --glass-border: rgba(0, 0, 0, 0.05);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-dark);
+  /* Dégradé adapté (sombre par défaut, clair si .light) */
+  background-image: 
+    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: var(--font-geist-sans), Arial, sans-serif; 
+  overflow: hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
+
+/* En mode sombre, on ajoute le fond profond */
+:not(.light) body {
+    background-image: 
+    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, #0F172A 0%, #020617 100%);
+}
+
+/* --- Composants Glassmorphism --- */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-panel {
+  background: var(--glass-bg); /* Utilise la variable pour s'adapter */
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--glass-border);
+}
+
+.input-glass {
+  background: rgba(0, 0, 0, 0.05); /* Plus neutre pour marcher sur fond clair */
+  border: 1px solid var(--glass-border);
+  color: inherit; /* Hérite de la couleur du texte */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ajustement spécifique input mode sombre */
+:not(.light) .input-glass {
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.input-glass:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+  outline: none;
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--accent-glow); }
+  50% { box-shadow: 0 0 20px var(--accent-glow); }
+}
+
+.user-pin {
+  background-color: var(--accent);
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: pulse-glow 2s infinite;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }

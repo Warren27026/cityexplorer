@@ -1,122 +1,97 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef, useState } from 'react';
-import 'leaflet/dist/leaflet.css';
+import { useEffect } from 'react';
 
-// 🔧 Corrige les icônes manquantes
-function useLeafletDefaultIcon() {
+// Reset des icônes Leaflet par défaut
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const customIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+const userIcon = new L.DivIcon({
+  className: 'user-pin', // Classe CSS définie dans globals.css
+  iconSize: [20, 20],
+  popupAnchor: [0, -10]
+});
+
+function MapController({ center, zoom }: { center: { lat: number; lon: number }, zoom: number }) {
+  const map = useMap();
   useEffect(() => {
-    // @ts-ignore
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl:
-        'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-  }, []);
+    map.flyTo([center.lat, center.lon], zoom, { duration: 1.5 });
+  }, [center, zoom, map]);
+  return null;
 }
 
-export type MarkerData = {
-  id: number;
-  name: string;
-  lat: number;
-  lon: number;
-  tags?: Record<string, string>;
-};
-
-type Props = {
+interface MapViewProps {
+  className?: string;
   center: { lat: number; lon: number };
-  markers: MarkerData[];
-  zoom?: number;
-};
-
-// 📍 Composant pour localiser l’utilisateur en cliquant
-function LocationMarker() {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-
-  const map = useMapEvents({
-    click() {
-      map.locate();
-    },
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    },
-  });
-
-  return position === null ? null : (
-    <Marker position={position}>
-      <Popup>📍 Vous êtes ici</Popup>
-    </Marker>
-  );
+  zoom: number;
+  userLocation?: { lat: number; lon: number } | null;
+  markers: { 
+    lat: number; 
+    lon: number; 
+    title: string; 
+    desc?: string;
+    googleMapsLink?: string; 
+  }[];
 }
 
-export default function MapView({ center, markers, zoom = 13 }: Props) {
-  useLeafletDefaultIcon();
-
-  const [ready, setReady] = useState(false);
-  const mapRef = useRef<L.Map | null>(null);
-
-  // ✅ Assure que la carte s’affiche bien
-  useEffect(() => {
-    if (!mapRef.current) return;
-    const m = mapRef.current;
-    const t1 = setTimeout(() => m.invalidateSize(), 0);
-    const t2 = setTimeout(() => m.invalidateSize(), 250);
-    const onResize = () => m.invalidateSize();
-    window.addEventListener('resize', onResize);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [ready]);
-
+export default function MapView({ className, center, zoom, markers, userLocation }: MapViewProps) {
   return (
-    <div className="w-full h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border bg-white shadow-sm">
-      <MapContainer
-        center={[center.lat, center.lon]}
-        zoom={zoom}
-        scrollWheelZoom
-        className="w-full h-full"
-        whenCreated={(m) => {
-          mapRef.current = m;
-          setReady(true);
-        }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+    <MapContainer center={[center.lat, center.lon]} zoom={zoom} className={className} scrollWheelZoom={true}>
+      <TileLayer
+        attribution='&copy; CARTO'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      />
+      <MapController center={center} zoom={zoom} />
+      
+      {/* Marqueur Utilisateur */}
+      {userLocation && (
+        <Marker position={[userLocation.lat, userLocation.lon]} icon={userIcon}>
+          <Popup>
+            <div className="text-black font-bold text-center">
+              📍 Vous êtes ici<br/>
+              <span className="text-[10px] font-normal text-gray-500">Prêt à explorer ?</span>
+            </div>
+          </Popup>
+        </Marker>
+      )}
 
-        {/* 🔍 Marqueurs existants */}
-        {markers.map((m) => (
-          <Marker key={m.id} position={[m.lat, m.lon]}>
-            <Popup>
-              <div className="text-sm">
-                <div className="font-semibold">{m.name}</div>
-                {m.tags?.website && (
-                  <a
-                    className="underline"
-                    href={m.tags.website}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Site web
-                  </a>
-                )}
-                {m.tags?.addr_full && <div>{m.tags.addr_full}</div>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* 📍 Marqueur de localisation (clic sur la carte) */}
-        <LocationMarker />
-      </MapContainer>
-    </div>
+      {/* Marqueurs Lieux */}
+      {markers.map((m, i) => (
+        <Marker key={i} position={[m.lat, m.lon]} icon={customIcon}>
+          <Popup>
+            <div className="min-w-[180px]">
+              <div className="font-bold text-sm text-[#7C3AED] mb-1 truncate">{m.title}</div>
+              {m.desc && <div className="text-[10px] text-gray-500 uppercase font-bold mb-2">{m.desc}</div>}
+              
+              {m.googleMapsLink && (
+                <a 
+                  href={m.googleMapsLink} 
+                  target="_blank" 
+                  className="block text-center w-full py-1.5 rounded bg-[#06B6D4] text-white text-[11px] font-bold hover:bg-[#0891b2] transition-colors no-underline shadow-md"
+                >
+                  🚗 Itinéraire
+                </a>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
   );
 }
